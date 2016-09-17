@@ -3,9 +3,12 @@ import numpy as np
 import pylab as pl
 import matplotlib.pyplot as plt
 
-# import mpld3
-
 class loop():
+    """
+    This is a class for storing Advisor Data that is calculated per loop. Each loop has a list of
+    children that can contain more loop objects. The calling program has to take care of populating
+    the children list.
+    """
 
     def __init__(self,line,keys):
 
@@ -16,13 +19,18 @@ class loop():
             setattr(self,formatted_key,line[i])
 
     def has_data(self):
-
+        """
+        Returns True if both AI and GFLOPS strings have length greater than 0
+        """
         if len(self.ai) > 0 and len(self.gflops) > 0:
             return True
         else:
             return False
 
     def child_has_data(self):
+        """
+        Returns True if both AI and GFLOPS strings of any of the children have length greater than 0
+        """
 
         for child in self.children:
             if len(child.ai) > 0 and len(child.gflops) > 0:
@@ -31,8 +39,18 @@ class loop():
         return False
         
 class advisor_results():
+    """
+    This class parses the data from a csv output file from Intel Advisor and stores it in a python
+    object. The raw data is stored in dictionary format in the data - field with keys in the keys - field.
+    The data is also kept in loop-objects that keep track of the parent-child relationships of loops, these
+    are stored in the loops - field. There are methods to plot the data and to calculate sums.
+    """
 
     def __init__(self,fn):
+        """
+        This constructor reads the csv data file and creates the dictionary and loop objects.
+        """
+
 
         lines = list()
 
@@ -70,25 +88,39 @@ class advisor_results():
         self.labels = self.data['Function Call Sites and Loops']
 
     def plot(self,fignum=1,markersize=200,mrk='o',newfig=True,label=None,tooltips=True):
+        """
+        This method plots all the loops in the object in a scatter plot on log-log scale.
+        Marker size represents the self time of the loop (in seconds) and marker color represents
+        the estimated vectorization gain.
 
+        Inputs:
+        -------
+        fignum     : integer - figure number (default 1)
+        markersize : integer - scaling factor for marker size (default 200)
+        mrk        : string  - marker style (default 'o')
+        newfig     : boolean - clear previous plots in figure (default True)
+        label      : string  - label for legend if plotting multiple data sets (default None)
+        tooltips   : boolean - show loop name on the plot by clicking on a data point (default True)
+        -------
+        """
         # Tooltip code adapted from http://matplotlib.sourceforge.net/examples/event_handling/pick_event_demo.html
         
         fig = plt.figure(fignum)
         if newfig:
             plt.clf()
         ax = plt.gca()
-        
+
+        # x-values of the plot (Arithmetic Intensity)
         x = list()
+        # y-values of the plot (GFLOP/sec)
         y = list()
+        # size of the markers (self time)
         s = list()
-        c = list()
+        # color of the markers (vectorization gain estimate)
+        c = list()        
         labels = list()
 
-        # ai = list()
-        # gflops = list()
-        # time = list()
-        # gain = list()
-
+        # Dummy value for vectorization gain of scalar loops that gets inserted into the list for plotting purposes
         scalarValue = -10.0
         
         for loop in self.loops:
@@ -104,11 +136,6 @@ class advisor_results():
             elif loop.child_has_data():
                 for child in loop.children:
                     if child.has_data():
-                        # ai.append(float(child.ai))
-                        # gflops.append(float(child.gflops))
-                        # time.append(float(child.selftime[:-1]))
-                        # if len(loop.gainestimate) > 0:
-                        #     gain.append(float(loop.gainestimate[:-1]))
                         
                         x.append(float(child.ai))
                         y.append(float(child.gflops))
@@ -160,17 +187,17 @@ class advisor_results():
         ax.grid(True,which='both')
         
         plt.hlines(y=5.4235e1,xmin=0,xmax=1)
-
-        # tooltip = mpld3.plugins.PointLabelTooltip(scatter, labels=self.labels)
-        # mpld3.plugins.connect(fig, tooltip)
-        
-        # mpld3.display()
         
         plt.show(block=False)
 
         return scatter
 
     def get_sum(self,key):
+        """
+        Calculate the sum of any field over all the loops. NOTE: there may be loops in the list
+        that are not actually executed by the program and therefore the result may be an overestimation.
+        For example, for FLOPS a better number is given in the Advisor GUI summary page.
+        """
 
         tot = 0
         for elem in self.data[key]:
