@@ -128,20 +128,22 @@ class advisor_results():
         if type(sizeKey) is str:
             s = self.get_array(key=sizeKey,
                                filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
-            s[s==''] = 0
-            s = np.array([float(x) for x in s])
+            #convert empty cells to 0's and then convert the array dtype to float
+            if s.dtype.type is np.str_:
+                s[s==''] = 0
+                s = np.array([float(x) for x in s])
         elif sizeKey is None:
             s = markersize
         else:
-            s = sizeKey
-            
-        print(type(s))
+            s = sizeKey            
             
         if type(colorKey) is str and len(colorKey) > 1:
             c = self.get_array(key=colorKey,
                                filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
-            c[c==''] = 0
-            c = np.array([float(x) for x in c])
+            #convert empty cells to 0's and then convert the array dtype to float
+            if c.dtype.type is np.str_:
+                c[c==''] = 0
+                c = np.array([float(x) for x in c])
         elif colorKey is None:
             c = 'b'
         else:
