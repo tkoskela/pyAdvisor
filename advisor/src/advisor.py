@@ -104,7 +104,7 @@ class advisor_results():
         subroutine = ''
         file = ''
         line = 0
-
+ 
         # Get the child property
         if fcsal[1:6] == 'child':
             child = True
@@ -117,7 +117,12 @@ class advisor_results():
         subroutine = fcsal[0]
 
         # Get the file
-        fcsal = fcsal[1].split(':')
+        try:
+            fcsal = fcsal[1].split(':')
+        except :
+            print(' Problem with loop format')
+            print(loop_with_data['fcsal'],'\n')
+
         file = fcsal[0]
 
         # get the line number
@@ -222,6 +227,7 @@ class advisor_results():
         ai = list()
         gflops = list()
         subroutines = list()
+        lines = list()
         times = list()
 
         # Fill the lists
@@ -233,7 +239,8 @@ class advisor_results():
                     gflops.append(loop['gflops'])
                     times.append(loop['time'])
                     subroutines.append(loop['subroutine'])
-        return lid,ai,gflops,times,subroutines
+                    lines.append(loop['line'])
+        return lid,ai,gflops,times,subroutines,lines
 
     def print(self):
         """
