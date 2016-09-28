@@ -1,8 +1,13 @@
+#
+# In this example, we simply show how to read a csv advisor file report
+# and how to plot the roofline.
+#
+# ____________________________________________________________________
 import pylab as pl
 import advisor
 
-fn1 = '../examples/advisor.csv'
-fn2 = '../examples/advisor2.csv'
+fn1 = '../csv_advisor_reports/advisor.csv'
+fn2 = '../csv_advisor_reports/advisor2.csv'
 
 adv1 = advisor.advisor_results(fn1)
 adv2 = advisor.advisor_results(fn2)
@@ -19,6 +24,8 @@ pl.legend(loc=2)
 
 fig.colorbar(sc1)
 
+
+# Do not be afraid, this part is only here to add some more interactivity with python 3
 for loop in adv1.loops:
     if loop.has_data():
         for loop2 in adv2.loops:
