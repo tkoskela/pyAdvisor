@@ -9,11 +9,11 @@ adv2 = advisor.advisor_results(fn2)
 
 fig = pl.figure(1)
 
-sc1 = adv2.plot(fignum = 1,mrk='s')
-sc2 = adv1.plot(fignum = 1,mrk='o',newfig=False,tooltips=False)
+sc1 = adv1.plot(fignum = 1,sizeKey='selftime',colorKey='gainestimate',mrk='s',markersize=200)
+sc2 = adv2.plot(fignum = 1,sizeKey='selftime',colorKey='gainestimate',mrk='o',newfig=False,tooltips=False,markersize=200)
 
-pl.plot(0,0,'bs',ms = 10,label='Blocked code')
-pl.plot(0,0,'bo',ms = 10,label='Original code')
+pl.plot(0,0,'bs',ms = 10,label='Code 1')
+pl.plot(0,0,'bo',ms = 10,label='Code 2')
 
 pl.legend(loc=2)
 
@@ -45,9 +45,4 @@ for loop in adv1.loops:
                         pl.plot(x,y,'k--')
 
 pl.show()                        
-# for i,ai in enumerate(adv1.ai):
-#     if not pl.isnan(ai):
-#         for j,lb in enumerate(adv2.labels):
-#             if adv1.labels[i] in lb:
-#                 pl.plot([adv1.ai[i],adv2.ai[j]],[adv1.gflops[i],adv2.gflops[j]],'k--')
                 

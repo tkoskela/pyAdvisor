@@ -67,7 +67,7 @@ class advisor_results():
             if l[0].find('ID') >= 0:
                 keyLineId = i
                 break
-        self.keys = lines[keyLineId]
+        self.keys = [x.lower() for x in lines[keyLineId]]
         self.data = dict()
 
         self.loops = list()
@@ -85,7 +85,7 @@ class advisor_results():
             for j,val in enumerate(l):
                 self.data[self.keys[j]].append(val)
                 
-        self.labels = self.data['Function Call Sites and Loops']
+        self.labels = self.data['function call sites and loops']
 
     def parse_functioncallsitesandloops(self,loop_with_data):
         """
@@ -285,7 +285,10 @@ class advisor_results():
                 y = np.minimum(np.ones(len(x)) * dp_vect_gflops , x * dram_bandwidth)
                 ax.plot(x,y,color='k',ls='-',lw='2')
 
-    def plot(self,fignum=1,markersize=200,mrk='o',newfig=True,label=None,tooltips=True):
+
+    def plot(self,fignum=1,markersize=20,mrk='o',newfig=True,label=None,tooltips=True,
+             filterVal=None,filterKey=None,filterOp=None,sizeKey=None,colorKey=None,
+             vmin=None,vmax=None):
         """
         This method plots all the loops in the object in a scatter plot on log-log scale.
         Marker size represents the self time of the loop (in seconds) and marker color represents
@@ -299,51 +302,55 @@ class advisor_results():
         newfig     : boolean - clear previous plots in figure (default True)
         label      : string  - label for legend if plotting multiple data sets (default None)
         tooltips   : boolean - show loop name on the plot by clicking on a data point (default True)
+
+        filterVal  : any - threshold value to filter plotted loops (default None)
+        filterKey  : any - attribute name for comparison to threshold in filter (default None)
+        filterOp   : function - function to use for filtering. Must take in two arguments and return True/False (default None)
+        sizeKey    : string/int/float - key to retrieve marker sizes or fixed marker size understood by scatter
+        colorKey   : string/int/float - key to retrieve marker colors or fixed marker color understood by scatter
+        vmin       : float - minimum of the color scale
+        vmax       : float - maximum of the color scale
         -------
         """
+        
         # Tooltip code adapted from http://matplotlib.sourceforge.net/examples/event_handling/pick_event_demo.html
         
         fig = plt.figure(fignum)
         if newfig:
             plt.clf()
         ax = plt.gca()
-
-        # x-values of the plot (Arithmetic Intensity)
-        x = list()
-        # y-values of the plot (GFLOP/sec)
-        y = list()
-        # size of the markers (self time)
-        s = list()
-        # color of the markers (vectorization gain estimate)
-        c = list()        
-        labels = list()
-
-        # Dummy value for vectorization gain of scalar loops that gets inserted into the list for plotting purposes
-        scalarValue = -10.0
         
-        for loop in self.loops:
-            if loop.has_data():
-                x.append(float(loop.ai))
-                y.append(float(loop.gflops))
-                s.append(float(loop.selftime[:-1]))
-                if 'Vectorized' in loop.type:
-                    c.append(float(loop.gainestimate[:-1]))
-                else:
-                    c.append(scalarValue)
-                labels.append(loop.functioncallsitesandloops)
-            elif loop.child_has_data():
-                for child in loop.children:
-                    if child.has_data():
-                        
-                        x.append(float(child.ai))
-                        y.append(float(child.gflops))
-                        s.append(float(child.selftime[:-1]))
-                        if 'Vectorized' in loop.type:
-                            c.append(float(loop.gainestimate[:-1]))
-                        else:
-                            c.append(scalarValue)
-                        labels.append(loop.functioncallsitesandloops)
-
+        x = self.get_array(key='ai',
+                           filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
+        y = self.get_array(key='gflops',
+                           filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
+        if type(sizeKey) is str:
+            s = self.get_array(key=sizeKey,
+                               filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
+            #convert empty cells to 0's and then convert the array dtype to float
+            if s.dtype.type is np.str_:
+                s[s==''] = 0
+                s = np.array([float(x) for x in s])
+        elif sizeKey is None:
+            s = markersize
+        else:
+            s = sizeKey            
+            
+        if type(colorKey) is str and len(colorKey) > 1:
+            c = self.get_array(key=colorKey,
+                               filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
+            #convert empty cells to 0's and then convert the array dtype to float
+            if c.dtype.type is np.str_:
+                c[c==''] = 0
+                c = np.array([float(x) for x in c])
+        elif colorKey is None:
+            c = 'b'
+        else:
+            c = colorKey
+            
+        labels = self.get_array(key='functioncallsitesandloops',
+                                filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
+        
         if tooltips:
             h = list()
             def onpick3(event):
@@ -355,24 +362,13 @@ class advisor_results():
                     plt.draw()
                     plt.show(block=False)
                     
-            scatter = ax.scatter(np.array(x),
-                                 np.array(y),
-                                 np.array(s)*markersize,
-                                 np.array(c),
-                                 marker=mrk,
-                                 label=label,
-                                 cmap=plt.cm.jet,
-                                 picker=True)
-            
+        #scatter = ax.scatter(x,y,s*markersize,c,marker=mrk,vmin=1,vmax=8,
+        #                     label=label,cmap=plt.cm.jet,picker=tooltips)            
+        scatter = ax.scatter(x,y,s*markersize,c,marker=mrk,vmin=vmin,vmax=vmax,
+                             label=label,cmap=plt.cm.jet,picker=tooltips)            
+
+        if tooltips:
             fig.canvas.mpl_connect('pick_event', onpick3)
-        else:
-            scatter = ax.scatter(np.array(x),
-                                 np.array(y),
-                                 np.array(s)*markersize,
-                                 np.array(c),
-                                 marker=mrk,
-                                 label=label,
-                                 cmap=plt.cm.jet)
             
         ax.set_yscale('log')
         ax.set_xscale('log')
@@ -399,14 +395,99 @@ class advisor_results():
 
         tot = 0
         for elem in self.data[key]:
-            try:
-                felem = float(elem)
-            except ValueError:
-                felem = 0
-                if not len(elem) == 0 and elem[-1] is 's':
-                    try:
-                        felem = float(elem[:-1])
-                    except ValueError:
-                        pass
-            tot = tot + felem
+            felem = convert_to_float(elem)
+            if not felem is None:
+                tot = tot + felem
         return tot
+
+    def get_array(self,key,include_children=True,filterVal=None,filterKey=None,filterOp=None):
+        """
+        Return an array collected from all the loops of a single value specified by key.
+        Filter results by passing filterVal, filterKey and filterOp to compare the value
+        in loop.filterKey to filterVal using operator filterOp. Use import operator to
+        pass operators.
+        """
+        
+        l = list()
+
+        if not type(filterVal) is list:
+            filterVal = [filterVal]
+        if not type(filterKey) is list:
+            filterKey = [filterKey]
+        if not type(filterOp) is list:
+            filterOp  = [filterOp ]
+
+        filter_pass = [False for i in range(np.size(filterOp))]
+
+        # Go through all the loops
+        for loop in self.loops:
+            # Look at loops that have data first
+            if(loop.has_data()):
+
+                # Go through all the filters
+                for i,op in enumerate(filterOp):
+                    try:
+                        filter_pass[i] = op(getattr(loop,filterKey[i]),filterVal[i])
+                    except TypeError:
+                        filter_pass[i] = False
+
+                # Check if all filters pass
+                if filterOp[0] is None or all(filter_pass):
+        
+                    elem = getattr(loop,key)
+                    felem = convert_to_float(elem)
+                    if not felem is None:
+                        l.append(felem)
+                    else:
+                        l.append(elem)
+
+            # If loop didn't have data, go through its children (that have data)
+            elif(include_children and loop.child_has_data()):
+                for child in loop.children:
+                    if child.has_data():
+
+                        # Go through all the filters for the child
+                        for i,op in enumerate(filterOp):
+                            try:
+                                filter_pass[i] = op(getattr(child,filterKey[i]),filterVal[i])
+                            except TypeError:
+                                filter_pass[i] = False
+
+                        # Check if all filters pass for the child
+                        if filterOp[0] is None or all(filter_pass):
+                            if key is 'gainestimate':
+                                elem = getattr(loop,key)
+                            else:
+                                elem = getattr(child,key)
+                            felem = convert_to_float(elem)
+                            if not felem is None:
+                                l.append(felem)
+                            else:
+                                l.append(elem)
+
+        arr = np.array(l)
+
+        return arr
+
+def convert_to_float(elem):
+    """
+    Try to convert an element in string elem to a floating point. Check for some special cases like
+    time values ending in 's'. On failure return None.
+    """
+    felem = None
+    try:
+        felem = float(elem)
+    except ValueError:
+        #felem = 0
+        if len(elem) > 0 and elem[-1] in 'sx':
+            try:                
+                felem = float(elem[:-1])
+            except ValueError:
+                pass
+    return felem
+        
+def string_contains(s1,s2):
+
+    return s1 in s2 or s2 in s1
+
+
