@@ -75,6 +75,11 @@ class advisor_results():
     def __init__(self,fn):
         """
         This constructor reads the csv data file and creates the dictionary and loop objects.
+
+        Input:
+        -------------
+        fn: advisor report file to be read
+        -------------
         """
 
 
@@ -330,16 +335,48 @@ class advisor_results():
         ---------
         """
 
+        # Count loops
+        nloops = 0
+        nloops_with_filters = 0
+
+        # Go through all the loops
+        for loop in self.loops:
+
+            # Look at loops that have data first
+            if(loop.has_data()):
+                
+                nloops += 1
+                if (has_data): nloops_with_filters += 1
+
+            # If loop didn't have data, go through its children (that have data)
+            elif(include_children and loop.child_has_data()):
+
+                for child in loop.children:
+                    nloops += 1
+                    if (has_data):
+                        if (child.has_data()): nloops_with_filters += 1
+                    else:
+                        nloops_with_filters += 1
+
+        # Print information
         print(' ')
-        print(' Total number of loops:')
-        print(' Total number of loops with children:')
+        print(' Total number of loops: {0}'.format(nloops))
+        print(' Total number of loops with filters: {0}'.format(nloops_with_filters))
 
         print(' ')
         print(' Filters:')
-        if (include_children): print(' - children are included')
+        if (include_children):
+            print(' - children are included')
+        else:
+            print(' - children not included')
+        if (has_data):
+            print(' - loops with data')
+        else:
+            print(' - All loops')
 
         print(' ')
         print(' List of loops:')
+        print('')
         print(' {0:3.3} type      {1:^30.30} {2:^25.25} {3:^10.10} {4:^10.10} {5:^10.10}'.format('id','subroutine','file','line','AI','gflops','time'))
         print(' -----------------------------------------------------------------------------------------------------------')
 
@@ -352,7 +389,7 @@ class advisor_results():
                 print(' {6:3.3} Loop:     {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10.10}'.format(loop.subroutine,
                     loop.file,loop.line,loop.ai,loop.gflops,loop.selftime,loop.id))
 
-                if ((loop.has_children)and(include_children)):
+                if ((include_children)and(loop.has_children)):
 
                     # Go through all the children
                     for child in loop.children:
