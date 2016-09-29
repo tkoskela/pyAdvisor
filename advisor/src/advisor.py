@@ -377,8 +377,8 @@ class advisor_results():
         print(' ')
         print(' List of loops:')
         print('')
-        print(' {0:3.3} type      {1:^30.30} {2:^25.25} {3:^10.10} {4:^10.10} {5:^10.10}'.format('id','subroutine','file','line','AI','gflops','time'))
-        print(' -----------------------------------------------------------------------------------------------------------')
+        print(' {0:3.3} type      {1:^30.30} {2:^25.25} {3:^10.10} {4:^10.10} {5:^10.10} {6:^10.10}'.format('id','subroutine','file','line','AI','gflops','time'))
+        print(' ------------------------------------------------------------------------------------------------------------------')
 
         # Go through all the loops
         for loop in self.loops:
@@ -386,7 +386,7 @@ class advisor_results():
             # Look at loops that have data first
             if((has_data)and(loop.has_data())):
 
-                print(' {6:3.3} Loop:     {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10.10}'.format(loop.subroutine,
+                print(' {6:3.3} Loop:     {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10.10} {5:>10.10}'.format(loop.subroutine,
                     loop.file,loop.line,loop.ai,loop.gflops,loop.selftime,loop.id))
 
                 if ((include_children)and(loop.has_children)):
@@ -396,7 +396,7 @@ class advisor_results():
 
                         if((has_data)and(child.has_data())):
 
-                            print(' {6:3.3}  | Child: {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10:10}'.format(child.subroutine,
+                            print(' {6:3.3}  | Child: {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10:10} {5:>10.10}'.format(child.subroutine,
                                 child.file,child.line,child.ai,child.gflops,child.selftime,child.id))
 
             # If loop didn't have data, go through its children (that have data)
@@ -405,7 +405,7 @@ class advisor_results():
                 for child in loop.children:
                     if (has_data)and(child.has_data()):
 
-                            print(' {6:3.3}  | Child: {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10.10}'.format(child.subroutine,
+                            print(' {6:3.3}  | Child: {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10.10} {5:>10.10}'.format(child.subroutine,
                                 child.file,child.line,child.ai,child.gflops,child.selftime,child.id))                       
 
 
