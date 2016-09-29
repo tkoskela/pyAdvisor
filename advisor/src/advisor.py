@@ -255,6 +255,38 @@ class advisor_results():
                 tot = tot + felem
         return tot
 
+    def loop_filter(self,loop,filterVal=None,filterKey=None,filterOp=None):
+        """
+        This function returns if the loop passes or not the filter
+
+        Input:
+        --------
+        loop: loop object
+        --------
+
+        """
+
+        if filterOp == None: return [True]
+
+        if not type(filterVal) is list:
+            filterVal = [filterVal]
+        if not type(filterKey) is list:
+            filterKey = [filterKey]
+        if not type(filterOp) is list:
+            filterOp  = [filterOp ]
+
+        filter_pass = [False for i in range(np.size(filterOp))]
+
+        # Go through all the filters
+        for i,op in enumerate(filterOp):
+            try:
+                filter_pass[i] = op(getattr(loop,filterKey[i]),filterVal[i])
+            except TypeError:
+                filter_pass[i] = False
+
+        return filter_pass
+
+
     def get_array(self,key,include_children=True,filterVal=None,filterKey=None,filterOp=None):
         """
         Return an array collected from all the loops of a single value specified by key.
@@ -324,14 +356,19 @@ class advisor_results():
 
         return arr
 
-    def print(self,include_children=True,has_data=True):
+    def print(self,include_children=True,has_data=True,filterVal=None,filterKey=None,filterOp=None):
         """
-        Print all the loops and their properties in the terminal
+        Print all the loops and their properties in the terminal.
+
+        For filter examples, see print_advisor_example.py
 
         Input:
         ---------
         include_children: if True, includes the children loops
-        has_data: if True, only includes 
+        has_data: if True, only includes
+        filterVal: list of values for the filter
+        filterKey: list of keys for the loops to consider for the filtering process
+        filterOp: filter operation defined as a function comparing attributes from filterKey with values in filterVal
         ---------
         """
 
@@ -346,7 +383,8 @@ class advisor_results():
             if(loop.has_data()):
                 
                 nloops += 1
-                if (has_data): nloops_with_filters += 1
+                filter_pass = self.loop_filter(loop,filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
+                if ((has_data)and(all(filter_pass))): nloops_with_filters += 1
 
             # If loop didn't have data, go through its children (that have data)
             elif(include_children and loop.child_has_data()):
@@ -354,7 +392,8 @@ class advisor_results():
                 for child in loop.children:
                     nloops += 1
                     if (has_data):
-                        if (child.has_data()): nloops_with_filters += 1
+                        filter_pass = self.loop_filter(loop,filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
+                        if (child.has_data()and(all(filter_pass))): nloops_with_filters += 1
                     else:
                         nloops_with_filters += 1
 
@@ -386,7 +425,11 @@ class advisor_results():
             # Look at loops that have data first
             if((has_data)and(loop.has_data())):
 
-                print(' {6:3.3} Loop:     {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10.10} {5:>10.10}'.format(loop.subroutine,
+                filter_pass = self.loop_filter(loop,filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
+
+                # Check if all filters pass
+                if all(filter_pass):
+                    print(' {6:3.3} Loop:     {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10.10} {5:>10.10}'.format(loop.subroutine,
                     loop.file,loop.line,loop.ai,loop.gflops,loop.selftime,loop.id))
 
                 if ((include_children)and(loop.has_children)):
@@ -394,17 +437,22 @@ class advisor_results():
                     # Go through all the children
                     for child in loop.children:
 
-                        if((has_data)and(child.has_data())):
+                        if(((has_data)and(child.has_data())) or not(has_data)):
 
-                            print(' {6:3.3}  | Child: {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10:10} {5:>10.10}'.format(child.subroutine,
+                            filter_pass = self.loop_filter(child,filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
+                            if all(filter_pass):
+                                print(' {6:3.3}  | Child: {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10:10} {5:>10.10}'.format(child.subroutine,
                                 child.file,child.line,child.ai,child.gflops,child.selftime,child.id))
 
             # If loop didn't have data, go through its children (that have data)
             elif(include_children and loop.child_has_data()):
 
+                # Go through all the children
                 for child in loop.children:
-                    if (has_data)and(child.has_data()):
+                    if (((has_data)and(child.has_data())) or not(has_data)):
 
+                        filter_pass = self.loop_filter(child,filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
+                        if all(filter_pass):
                             print(' {6:3.3}  | Child: {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10.10} {5:>10.10}'.format(child.subroutine,
                                 child.file,child.line,child.ai,child.gflops,child.selftime,child.id))                       
 
@@ -454,13 +502,9 @@ class advisor_results():
             line = int(fcsal[1])
 
         vals.append(child)
-
         vals.append(subroutine)
-
         vals.append(file)
-
         vals.append(line)
-
 
         return vals,keys
 
