@@ -13,23 +13,27 @@ fn1 = '../csv_advisor_reports/Picsar_PIC_example.csv'
 # Read the file
 adv1 = advisor.advisor_results(fn1)
 
-# 1) Show all the results
+# 1) Print the list of keys 
+
+adv1.print_keys()
+
+# 2) Show all the results
 # Uncomment to see the result
 # adv1.print()
 
-# 2) Show only the results with data and also shows the children
+# 3) Show only the results with data and also shows the children
 adv1.print(include_children=True,has_data=True)
 
 #### Examples with filters #############################################
 
-# 3) Only show loops from the file current_deposition.F90
+# 4) Only show loops from the file current_deposition.F90
 
 def op1(val_from_loop,val_filter):
 	return ((val_from_loop) == val_filter)
 
 adv1.print(include_children=True,has_data=True,filterVal=['current_deposition.F90'],filterKey=['file'],filterOp=[op1])
 
-# 4) Only show the corresponding the loops at the corresponding lines [2681,2730,9552] and in current_deposition.F90
+# 5) Only show the corresponding the loops at the corresponding lines [2681,2730,9552] and in current_deposition.F90
                       
 def op2(val_from_loop,val_filter):
 	return (int(val_from_loop) in val_filter)   

@@ -140,6 +140,20 @@ class advisor_results():
                 
         self.labels = self.data['function call sites and loops']
 
+    def get_keys(self):
+        """
+        This method returns the list of keys
+        """
+        return self.keys
+
+    def print_keys(self):
+        """
+        This method prints the available keys (properties of the loops)
+        """
+        print()
+        print(' {} keys available per loop:'.format(len(self.keys)))
+        for k,key in enumerate(self.keys):
+            print(' {0:2} - {1}'.format(k,key))
 
     def plot(self,fignum=1,markersize=20,mrk='o',newfig=True,label=None,tooltips=True,
              filterVal=None,filterKey=None,filterOp=None,sizeKey=None,colorKey=None,
@@ -262,6 +276,9 @@ class advisor_results():
         Input:
         --------
         loop: loop object
+        filterVal: list of values for the filter
+        filterKey: list of keys for the loops to consider for the filtering process
+        filterOp: filter operation defined as a function comparing attributes from filterKey with values in filterVal
         --------
 
         """
