@@ -22,6 +22,9 @@ adv1.print_keys()
 # adv1.print()
 
 # 3) Show only the results with data and also shows the children
+
+adv1.sort(attr='selftime')
+
 adv1.print(include_children=True,has_data=True)
 
 #### Examples with filters #############################################
