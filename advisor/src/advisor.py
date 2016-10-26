@@ -440,6 +440,15 @@ class advisor_results():
         # Go through all the loops
         for loop in self.loops:
 
+            if 'Function' in loop.type:
+                formatstr_parent = '     Function: {0:67.30} {3:>10.10} {4:>10.10} {5:>10.10}'
+                loopName = loop.functioncallsitesandloops
+            else:
+                formatstr_parent = ' {6:3.3} Loop:     {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10.10} {5:>10.10}'
+                loopName = loop.subroutine
+                
+            formatstr_child  = ' {6:3.3}  | Child: {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10.10} {5:>10.10}'
+            
             # Look at loops that have data first
             if((has_data)and(loop.has_data()) or not has_data or (include_children and loop.child_has_data())):
 
@@ -447,8 +456,7 @@ class advisor_results():
 
                 # Check if all filters pass
                 if all(filter_pass):
-                    print(' {6:3.3} Loop:     {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10.10} {5:>10.10}'.format(loop.subroutine,
-                    loop.file,loop.line,loop.ai,loop.gflops,loop.selftime,loop.id))
+                        print(formatstr_parent.format(loopName,loop.file,loop.line,loop.ai,loop.gflops,loop.selftime,loop.id))
 
                 if ((include_children)and(loop.has_children)):
 
@@ -459,8 +467,7 @@ class advisor_results():
 
                             filter_pass = self.loop_filter(child,filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
                             if all(filter_pass):
-                                print(' {6:3.3}  | Child: {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10.10} {5:>10.10}'
-                                    .format(child.subroutine,child.file,child.line,child.ai,child.gflops,child.selftime,child.id))                                    
+                                print(formatstr_child.format(child.subroutine,child.file,child.line,child.ai,child.gflops,child.selftime,child.id))                                    
 
 
             # If loop didn't have data, go through its children (that have data)
@@ -473,8 +480,7 @@ class advisor_results():
 
                             filter_pass = self.loop_filter(child,filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
                             if all(filter_pass):
-                                print(' {6:3.3}  | Child: {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10.10} {5:>10.10}'
-                                      .format(child.subroutine,child.file,child.line,child.ai,child.gflops,child.selftime,child.id))                       
+                                print(formatstr_child.format(child.subroutine,child.file,child.line,child.ai,child.gflops,child.selftime,child.id))                       
 
 
     def parse_functioncallsitesandloops(self,fcsal,vals,keys):
