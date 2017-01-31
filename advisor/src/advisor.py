@@ -199,7 +199,7 @@ class advisor_results():
             #convert empty cells to 0's and then convert the array dtype to float
             if s.dtype.type is np.str_:
                 s[s==''] = 0
-                s = np.array([float(x) for x in s])
+                s = np.array([float(foo) for foo in s])
         elif sizeKey is None:
             s = markersize
         else:
@@ -211,7 +211,7 @@ class advisor_results():
             #convert empty cells to 0's and then convert the array dtype to float
             if c.dtype.type is np.str_:
                 c[c==''] = 0
-                c = np.array([float(x) for x in c])
+                c = np.array([float(foo) for foo in c])
         elif colorKey is None:
             c = 'b'
         else:
