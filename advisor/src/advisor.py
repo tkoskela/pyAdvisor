@@ -28,12 +28,16 @@ class loop():
 
     def __init__(self,line,keys):
 
+        bad_chars = ['%',',','/','(',')','[',']']
+        
         self.children = list()
 
         # Creation of the attributes from line and keys
-        for i,key in enumerate(keys):
+        for key,val in zip(keys,line):
             formatted_key = ''.join(key.split()).lower()
-            setattr(self,formatted_key,line[i])
+            for char in bad_chars:
+                formatted_key = formatted_key.replace(char,'')
+            setattr(self,formatted_key,val)
 
     def has_data(self):
         """
@@ -375,7 +379,7 @@ class advisor_results():
 
     def print_loop_properties(self,include_children=True,has_data=True,filterVal=None,filterKey=None,filterOp=None):
         """
-        Print all the loops and their properties in the terminal.
+        Print all the loops/functions and their properties in the terminal.
 
         For filter examples, see print_advisor_example.py
 
@@ -432,7 +436,7 @@ class advisor_results():
             print(' - All loops')
 
         print(' ')
-        print(' List of loops:')
+        print(' List of objects:')
         print('')
         print(' {0:3.3} type      {1:^30.30} {2:^30.30} {3:^10.10} {4:^10.10} {5:^10.10} {6:^10.10}'.format('id','subroutine','file','line','AI','gflops','time'))
         print(' ------------------------------------------------------------------------------------------------------------------')
