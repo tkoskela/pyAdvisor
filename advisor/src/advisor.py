@@ -157,7 +157,7 @@ class advisor_results():
 
     def plot(self,fignum=1,markersize=20,mrk='o',newfig=True,label=None,tooltips=True,
              filterVal=None,filterKey=None,filterOp=None,sizeKey=None,colorKey=None,
-             vmin=None,vmax=None):
+             vmin=None,vmax=None,gflopScaling=1.0):
         """
         This method plots all the loops in the object in a scatter plot on log-log scale.
         Marker size represents the self time of the loop (in seconds) and marker color represents
@@ -192,7 +192,7 @@ class advisor_results():
         x = self.get_array(key='ai',
                            filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
         y = self.get_array(key='gflops',
-                           filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
+                           filterVal=filterVal,filterKey=filterKey,filterOp=filterOp) * gflopScaling
         if type(sizeKey) is str:
             s = self.get_array(key=sizeKey,
                                filterVal=filterVal,filterKey=filterKey,filterOp=filterOp)
@@ -242,14 +242,14 @@ class advisor_results():
         ax.set_yscale('log')
         ax.set_xscale('log')
         ax.set_xlim(1.0e-2,1.0e0)
-        ax.set_ylim(1.0e-1,1.0e2)
+        ax.set_ylim(1.0e-1,1.0e3)
         
         ax.set_xlabel('AI')
         ax.set_ylabel('GFLOP/S')
         
         ax.grid(True,which='both')
         
-        plt.hlines(y=5.4235e1,xmin=0,xmax=1)
+        #plt.hlines(y=5.4235e1,xmin=0,xmax=1)
         
         plt.show(block=False)
 
@@ -567,13 +567,14 @@ class advisor_results():
         xlim = np.array(ax.get_xlim())
         ylim = np.array(ax.get_ylim())
 
-        if dram_bandwidth != None:
-            if scalar_gflops != None:
-                y = np.minimum(np.ones(len(x)) * scalar_gflops , x * dram_bandwidth)
-                ax.plot(x,y,color='k',ls='-',lw='2')
-            if dp_vect_gflops != None:
-                y = np.minimum(np.ones(len(x)) * dp_vect_gflops , x * dram_bandwidth)
-                ax.plot(x,y,color='k',ls='-',lw='2')
+        for bw in [dram_bandwidth,mcdram_bandwidth]:
+            if bw != None:
+                if scalar_gflops != None:
+                    y = np.minimum(np.ones(len(x)) * scalar_gflops , x * bw)
+                    ax.plot(x,y,color='k',ls='-',lw='2')
+                if dp_vect_gflops != None:
+                    y = np.minimum(np.ones(len(x)) * dp_vect_gflops , x * bw)
+                    ax.plot(x,y,color='k',ls='-',lw='2')
 
 
 # ___________________________________________________________________
@@ -612,6 +613,7 @@ def convert_to_int(elem):
 
 def string_contains(s1,s2):
 
-    return s1 in s2 or s2 in s1
+    return s2 in s1
+
 
 
