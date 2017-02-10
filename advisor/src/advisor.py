@@ -199,7 +199,7 @@ class advisor_results():
             #convert empty cells to 0's and then convert the array dtype to float
             if s.dtype.type is np.str_:
                 s[s==''] = 0
-                s = np.array([float(x) for x in s])
+                s = np.array([float(foo) for foo in s])
         elif sizeKey is None:
             s = markersize
         else:
@@ -211,7 +211,7 @@ class advisor_results():
             #convert empty cells to 0's and then convert the array dtype to float
             if c.dtype.type is np.str_:
                 c[c==''] = 0
-                c = np.array([float(x) for x in c])
+                c = np.array([float(foo) for foo in c])
         elif colorKey is None:
             c = 'b'
         else:
@@ -373,7 +373,7 @@ class advisor_results():
 
         return arr
 
-    def print(self,include_children=True,has_data=True,filterVal=None,filterKey=None,filterOp=None):
+    def print_loop_properties(self,include_children=True,has_data=True,filterVal=None,filterKey=None,filterOp=None):
         """
         Print all the loops and their properties in the terminal.
 
@@ -434,7 +434,7 @@ class advisor_results():
         print(' ')
         print(' List of loops:')
         print('')
-        print(' {0:3.3} type      {1:^30.30} {2:^25.25} {3:^10.10} {4:^10.10} {5:^10.10} {6:^10.10}'.format('id','subroutine','file','line','AI','gflops','time'))
+        print(' {0:3.3} type      {1:^30.30} {2:^30.30} {3:^10.10} {4:^10.10} {5:^10.10} {6:^10.10}'.format('id','subroutine','file','line','AI','gflops','time'))
         print(' ------------------------------------------------------------------------------------------------------------------')
 
         # Go through all the loops
@@ -444,10 +444,10 @@ class advisor_results():
                 formatstr_parent = '     Function: {0:67.30} {3:>10.10} {4:>10.10} {5:>10.10}'
                 loopName = loop.functioncallsitesandloops
             else:
-                formatstr_parent = ' {6:3.3} Loop:     {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10.10} {5:>10.10}'
+                formatstr_parent = ' {6:3.3} Loop:     {0:30.30} {1:>30.30} {2:>10} {3:>10.10} {4:>10.10} {5:>10.10}'
                 loopName = loop.subroutine
                 
-            formatstr_child  = ' {6:3.3}  | Child: {0:30.30} {1:>25.25} {2:>10} {3:>10.10} {4:>10.10} {5:>10.10}'
+            formatstr_child  = ' {6:3.3}  | Child: {0:30.30} {1:>30.30} {2:>10} {3:>10.10} {4:>10.10} {5:>10.10}'
             
             # Look at loops that have data first
             if((has_data)and(loop.has_data()) or not has_data or (include_children and loop.child_has_data())):

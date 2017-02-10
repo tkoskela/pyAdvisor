@@ -25,7 +25,7 @@ adv1.print_keys()
 
 adv1.sort(attr='selftime')
 
-adv1.print(include_children=True,has_data=True)
+adv1.print_loop_properties(include_children=True,has_data=True)
 
 #### Examples with filters #############################################
 
@@ -34,13 +34,13 @@ adv1.print(include_children=True,has_data=True)
 def op1(val_from_loop,val_filter):
 	return ((val_from_loop) == val_filter)
 
-adv1.print(include_children=True,has_data=True,filterVal=['current_deposition.F90'],filterKey=['file'],filterOp=[op1])
+adv1.print_loop_properties(include_children=True,has_data=True,filterVal=['current_deposition.F90'],filterKey=['file'],filterOp=[op1])
 
 # 5) Only show the corresponding the loops at the corresponding lines [2681,2730,9552] and in current_deposition.F90
                       
 def op2(val_from_loop,val_filter):
 	return (int(val_from_loop) in val_filter)   
 
-adv1.print(include_children=True,has_data=True,filterVal=['current_deposition.F90',[2681,2730,9552]],filterKey=['file','line'],filterOp=[op1,op2])
+adv1.print_loop_properties(include_children=True,has_data=True,filterVal=['current_deposition.F90',[2681,2730,9552]],filterKey=['file','line'],filterOp=[op1,op2])
 
 # Filters can be added like this indefinitely, it's cool isn't it !?     
