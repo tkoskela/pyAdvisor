@@ -441,6 +441,8 @@ class advisor_results():
         print(' {0:3.3} type      {1:^30.30} {2:^30.30} {3:^10.10} {4:^10.10} {5:^10.10} {6:^10.10}'.format('id','subroutine','file','line','AI','gflops','time'))
         print(' ------------------------------------------------------------------------------------------------------------------')
 
+        default = -999
+        
         # Go through all the loops
         for loop in self.loops:
 
@@ -460,7 +462,10 @@ class advisor_results():
 
                 # Check if all filters pass
                 if all(filter_pass):
+                    if (getattr(loop,'selftimes',default) == default):
                         print(formatstr_parent.format(loopName,loop.file,loop.line,loop.ai,loop.gflops,loop.selftime,loop.id))
+                    else:
+                        print(formatstr_parent.format(loopName,loop.file,loop.line,loop.ai,loop.gflops,loop.selftimes,loop.id))
 
                 if ((include_children)and(loop.has_children)):
 
