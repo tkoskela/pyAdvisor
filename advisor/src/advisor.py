@@ -19,6 +19,46 @@ import numpy as np
 import pylab as pl
 import matplotlib.pyplot as plt
 
+class roofs():
+
+    def __init__(self,fn,single=False):
+
+        #Read in Roofs    
+        fh=open('roofs.dat')
+        lines = fh.readlines()
+        for line in lines:
+            bw = None
+            if(single):
+                if 'single-threaded' in line and (('compute' in line) or ('memory' in line)):
+                    bw = int(line.split()[-2])
+                    i = max(line.find('Peak'),line.find('idth')) + 4
+            else:
+                if not 'single-threaded' in line and (('compute' in line) or ('memory' in line)):
+                    bw = int(line.split()[-2])
+
+            if not bw is None:
+                i = max(line.find('Peak'),line.find('idth')) + 4
+                key = line[:i]
+                formatted_key = ''.join(key.split()).lower()
+                setattr(self,formatted_key,bw * 1e-9)
+        fh.close()
+
+    def plot(self,ax=None):
+
+        if ax is None:
+            ax = pl.gca()
+        
+        xlim = np.array(ax.get_xlim())
+        ylim = np.array(ax.get_ylim())
+
+        x = np.logspace(np.log10(xlim[0]),np.log10(xlim[1]),1000)
+        
+        for bw in [self.drambandwidth,self.l2bandwidth,self.l1bandwidth]:
+            for flops in [self.scalaraddpeak, self.dpvectoraddpeak,self.dpvectorfmapeak]:
+                y = np.minimum(np.ones(len(x)) * flops , x * bw)
+                ax.plot(x,y,color='k',ls='-',lw='2')
+
+
 class loop():
     """
     This is a class for storing Advisor Data that is calculated per loop. Each loop has a list of
@@ -245,7 +285,7 @@ class advisor_results():
             
         ax.set_yscale('log')
         ax.set_xscale('log')
-        ax.set_xlim(1.0e-2,1.0e0)
+        ax.set_xlim(1.0e-2,1.0e1)
         ax.set_ylim(1.0e-1,1.0e3)
         
         ax.set_xlabel('AI')
@@ -559,7 +599,7 @@ class advisor_results():
 # Roofline
 # ___________________________________________________________________
 
-    def roofline(self,fig,ax,x,dram_bandwidth=None,mcdram_bandwidth=None,scalar_gflops=None,dp_vect_gflops=None):
+    def roofline(self,fig,ax,x,roofs=None,dram_bandwidth=None,mcdram_bandwidth=None,scalar_gflops=None,dp_vect_gflops=None):
         """
         Plot the rooflines according to the given numbers
 
@@ -576,14 +616,20 @@ class advisor_results():
         xlim = np.array(ax.get_xlim())
         ylim = np.array(ax.get_ylim())
 
-        for bw in [dram_bandwidth,mcdram_bandwidth]:
-            if bw != None:
-                if scalar_gflops != None:
-                    y = np.minimum(np.ones(len(x)) * scalar_gflops , x * bw)
+        if not roofs is None:
+            for bw in [roofs['DRAM Bandwidth'],roofs['L2 Bandwidth'],roofs['L1 Bandwidth']]:
+                for flops in [roofs['Scalar Add Peak'], roofs['DP Vector Add Peak'], roofs['DP Vector FMA Peak']]:
+                    y = np.minimum(np.ones(len(x)) * flops , x * bw)
                     ax.plot(x,y,color='k',ls='-',lw='2')
-                if dp_vect_gflops != None:
-                    y = np.minimum(np.ones(len(x)) * dp_vect_gflops , x * bw)
-                    ax.plot(x,y,color='k',ls='-',lw='2')
+        else:        
+            for bw in [dram_bandwidth,mcdram_bandwidth]:
+                if bw != None:
+                    if scalar_gflops != None:
+                        y = np.minimum(np.ones(len(x)) * scalar_gflops , x * bw)
+                        ax.plot(x,y,color='k',ls='-',lw='2')
+                    if dp_vect_gflops != None:
+                        y = np.minimum(np.ones(len(x)) * dp_vect_gflops , x * bw)
+                        ax.plot(x,y,color='k',ls='-',lw='2')
 
 
 # ___________________________________________________________________
